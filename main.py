@@ -4,35 +4,43 @@ import uvicorn
 
 app = FastAPI()
 
-# اجازه CORS برای مینی‌اپ و سیستم پرداخت
+# CORS برای مینی‌اپ تلگرام و سیستم پرداخت
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # بهتره اینو محدود کنی به دامنه خودت در نسخه نهایی
+    allow_origins=["*"],  # در نسخه نهایی به دامنه‌های خودت محدودش کن
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# کاربران متصل شده
 connected_users = {}
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     user_id = websocket.query_params.get("userId")
+
     if user_id:
         connected_users[user_id] = websocket
         try:
             while True:
-                await websocket.receive_text()  # گوش می‌کنه ولی فعلاً استفاده نمی‌کنیم
+                # پیام‌های دریافتی از کلاینت را می‌توان اینجا پردازش کرد
+                await websocket.receive_text()
         except WebSocketDisconnect:
-            del connected_users[user_id]
+            connected_users.pop(user_id, None)
 
+# ارسال نوتیفیکیشن به کاربر خاص
 @app.post("/notify")
-async def notify_user(user_id: str, new_balance: float):
+async def notify_user(payload: dict):
+    user_id = payload.get("userId")
+    event = payload.get("event")
+    data = payload.get("data", {})
+
     if user_id in connected_users:
         await connected_users[user_id].send_json({
-            "userId": user_id,
-            "newBalance": new_balance
+            "event": event,
+            "data": data
         })
         return {"status": "sent"}
     return {"status": "user_not_connected"}
