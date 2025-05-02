@@ -1,6 +1,8 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+import requests
+import random
 
 app = FastAPI()
 
@@ -12,6 +14,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# لیست لینک‌های سیستم پرداخت (10 سرور روی Vercel)
+PAYMENT_SERVERS = [
+    "https://payment-1.vercel.app/api/transaction",
+    "https://payment-2.vercel.app/api/transaction",
+    "https://payment-3.vercel.app/api/transaction",
+    # ...
+    "https://payment-10.vercel.app/api/transaction"
+]
 
 # کاربران متصل شده
 connected_users = {}
@@ -25,10 +36,33 @@ async def websocket_endpoint(websocket: WebSocket):
         connected_users[user_id] = websocket
         try:
             while True:
-                # پیام‌های دریافتی از کلاینت را می‌توان اینجا پردازش کرد
-                await websocket.receive_text()
+                message = await websocket.receive_json()
+                if message.get("type") == "payment_request":
+                    await handle_payment_request(user_id, message)
         except WebSocketDisconnect:
             connected_users.pop(user_id, None)
+
+# هندل‌کردن درخواست پرداخت و ارسال به یکی از سرورهای پرداخت
+async def handle_payment_request(user_id, message):
+    payment_data = message.get("data")
+    selected_url = random.choice(PAYMENT_SERVERS)
+
+    try:
+        response = requests.post(selected_url, json=payment_data)
+        response_data = response.json()
+        # ارسال پاسخ به کلاینت از طریق وب‌سوکت
+        if user_id in connected_users:
+            await connected_users[user_id].send_json({
+                "event": "payment_response",
+                "data": response_data
+            })
+    except Exception as e:
+        print(f"Payment request failed: {e}")
+        if user_id in connected_users:
+            await connected_users[user_id].send_json({
+                "event": "payment_error",
+                "data": {"error": str(e)}
+            })
 
 # ارسال نوتیفیکیشن به کاربر خاص
 @app.post("/notify")
