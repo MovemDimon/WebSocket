@@ -24,7 +24,7 @@ PAYMENT_SERVERS = [
     "https://payment-10.vercel.app/api/transaction"
 ]
 
-# کاربران متصل شده
+# کاربران متصل‌شده
 connected_users = {}
 
 @app.websocket("/ws")
@@ -50,7 +50,6 @@ async def handle_payment_request(user_id, message):
     try:
         response = requests.post(selected_url, json=payment_data)
         response_data = response.json()
-        # ارسال پاسخ به کلاینت از طریق وب‌سوکت
         if user_id in connected_users:
             await connected_users[user_id].send_json({
                 "event": "payment_response",
