@@ -3,3 +3,7 @@ uvicorn
 python-telegram-bot==13.15
 websocket-client
 requests
+flask
+gunicorn
+eventlet
+python-socketio
