@@ -8,25 +8,24 @@ from starlette.websockets import WebSocketState
 
 app = FastAPI()
 
-# CORS settings - فقط دامنه‌های مجاز
+# CORS settings - اجازه‌ همه‌دامنه‌ها برای توسعه (در پروداکشن محدودتر کنید)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://yourdomain.com"],  # در محیط تولید لیست دقیق دامنه‌ها
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# سرورهای پرداخت و لیست سلامت آنها
+# لیست سرورهای پرداخت و وضعیت سلامت آن‌ها
 PAYMENT_SERVERS = [
     "https://payment-1.vercel.app/api/transaction",
-    # … تا 10 سرور
+    # … تا ۱۰ سرور
     "https://payment-10.vercel.app/api/transaction",
 ]
 healthy_servers = PAYMENT_SERVERS.copy()
 API_KEY = "<YOUR_WS_API_KEY>"
 
-# Health check دوره‌ای برای به‌روزرسانی لیست سرورهای سالم
 async def health_check():
     async with httpx.AsyncClient(timeout=5) as client:
         while True:
@@ -39,8 +38,9 @@ async def health_check():
                     )
                     if r.status_code == 200:
                         new_healthy.append(url)
-                except Exception:
-                    continue
+                except Exception as e:
+                    # لاگ خطا برای اشکال‌زدایی
+                    print(f"[health_check] error checking {url}: {e}")
             if new_healthy:
                 healthy_servers.clear()
                 healthy_servers.extend(new_healthy)
@@ -50,14 +50,14 @@ async def health_check():
 async def startup_event():
     asyncio.create_task(health_check())
 
-# نگهداری WebSocketهای فعال
+# نگهداری WebSocket‌های فعال
 connected_users: Dict[str, WebSocket] = {}
 
 @app.websocket("/ws")
 async def websocket_endpoint(
     websocket: WebSocket,
-    user_id: str = Query(...),
-    api_key: str = Query(...)
+    user_id: str = Query(..., alias="userId"),
+    api_key: str = Query(..., alias="api_key")
 ):
     if api_key != API_KEY:
         await websocket.close(code=1008)
@@ -68,7 +68,8 @@ async def websocket_endpoint(
     try:
         while True:
             data = await websocket.receive_json()
-            if data.get("action") == "confirm_payment":
+            action = data.get("action") or data.get("type")
+            if action == "confirm_payment" or action == "payment_request":
                 # اجرای ناهمزمان درخواست پرداخت
                 asyncio.create_task(handle_payment_request(user_id, data.get("data", {})))
     except WebSocketDisconnect:
@@ -96,11 +97,11 @@ async def handle_payment_request(user_id: str, data: dict):
 @app.post("/notify")
 async def notify_user(
     payload: dict,
-    api_key: str = Query(...)
+    api_key: str = Query(..., alias="api_key")
 ):
     if api_key != API_KEY:
         raise HTTPException(status_code=403, detail="Invalid API Key")
-    user_id = payload.get("userId")
+    user_id = payload.get("userId") or payload.get("user_id")
     event = payload.get("event")
     data = payload.get("data", {})
     ws = connected_users.get(str(user_id))
@@ -111,4 +112,4 @@ async def notify_user(
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("websocket_server:app", host="0.0.0.0", port=10000)
+    uvicorn.run("main:app", host="0.0.0.0", port=10000)
