@@ -1,12 +1,14 @@
 import pytest
 from fastapi.testclient import TestClient
-import main 
+from starlette.websockets import WebSocketDisconnect
+from main import app
 
-client = TestClient(main.app)
+client = TestClient(app)
 
 def test_ws_rejects_wrong_key():
-    with pytest.raises(Exception):
-        client.websocket_connect("/ws?userId=u1&api_key=wrong")
+    with pytest.raises(WebSocketDisconnect):
+        with client.websocket_connect("/ws?userId=u1&api_key=wrong"):
+            pass
 
 def test_ws_accepts_and_closes():
     with client.websocket_connect("/ws?userId=u1&api_key=testkey"):
@@ -15,7 +17,11 @@ def test_ws_accepts_and_closes():
 def test_notify_user_not_connected():
     resp = client.post(
         "/notify?api_key=testkey",
-        json={"userId":"u1","event":"evt","data":{}}
+        json={
+            "userId": "u1",
+            "event": "evt",
+            "data": {}
+        }
     )
     assert resp.status_code == 200
     assert resp.json()["status"] == "user_not_connected"
