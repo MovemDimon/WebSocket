@@ -21,6 +21,6 @@ async def test_full_flow():
     client = TestClient(app)
     with client.websocket_connect("/ws?userId=u1&api_key=testkey") as ws:
         ws.send_json({"action":"confirm_payment","data":{"userId":"u1","coins":10,"usdPrice":5}})
-        msg = ws.receive_json(timeout=1)
+        msg = ws.receive_json()
         assert msg["event"] == "payment_result"
         assert msg["data"]["status"] == "confirmed"
