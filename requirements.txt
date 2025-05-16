@@ -8,3 +8,6 @@ flask
 gunicorn
 eventlet
 python-socketio
+httpx
+pytest
+pytest-asyncio
