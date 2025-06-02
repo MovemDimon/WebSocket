@@ -12,3 +12,5 @@ python-socketio
 httpx
 pytest
 pytest-asyncio
+starlette
+telegram
