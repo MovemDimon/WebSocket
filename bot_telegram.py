@@ -77,7 +77,12 @@ async def ask_tx_hash(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     pkg = context.user_data.get("package", {})
     amount = pkg.get("usdPrice")
     currency = context.user_data["currency"]
-    merchant = Config.MERCHANT_WALLET_ADDRESS
+
+    # انتخاب آدرس مقصد بر اساس شبکه
+    if context.user_data["network"] == "TON":
+        merchant = Config.TON_MERCHANT_WALLET
+    else:
+        merchant = Config.ETH_MERCHANT_WALLET
 
     await update.message.reply_text(
         f"Please send exactly {amount} {currency} to the address below:\n\n`{merchant}`\n\n"
@@ -99,7 +104,7 @@ async def receive_tx_hash(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         "currency": context.user_data["currency"],
         "network": context.user_data["network"],
         "amount": pkg.get("usdPrice"),
-        "merchant_wallet": Config.MERCHANT_WALLET_ADDRESS,
+        "merchant_wallet": merchant,
         "sender_wallet": context.user_data["wallet"],
         "tx_hash": tx_hash,
     }
