@@ -84,6 +84,9 @@ async def ask_tx_hash(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     else:
         merchant = Config.ETH_MERCHANT_WALLET
 
+    # ذخیره merchant در user_data برای استفاده بعدی
+    context.user_data["merchant"] = merchant
+
     await update.message.reply_text(
         f"Please send exactly {amount} {currency} to the address below:\n\n`{merchant}`\n\n"
         "After payment, please reply with the transaction hash (tx_hash).",
@@ -99,6 +102,8 @@ async def receive_tx_hash(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     context.user_data["tx_hash"] = tx_hash
     pkg = context.user_data.get("package", {})
+    merchant = context.user_data.get("merchant")  # اینجا از مقدار ذخیره‌شده استفاده می‌کنیم
+
     data = {
         "user_id": pkg.get("userId"),
         "currency": context.user_data["currency"],
