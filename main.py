@@ -21,11 +21,11 @@ app.add_middleware(
 # لیست ثابت سرورهای پرداخت Vercel
 # —————————————————————————————
 PAYMENT_SERVERS = [
-    "https://vercel-app-10-xxxx.vercel.app/api/transaction",
-    "https://vercel-app-50-xxxx.vercel.app/api/transaction",
-    "https://vercel-app-70-xxxx.vercel.app/api/transaction",
-    "https://vercel-app-110-xxxx.vercel.app/api/transaction",
-    "https://vercel-app-120-xxxx.vercel.app/api/transaction",
+    "https://vercel-app-10-njo6.vercel.app/api/transaction",
+    "https://vercel-app-50-5ymi.vercel.app/api/transaction",
+    "https://vercel-app-70-swvx.vercel.app/api/transaction",
+    "https://vercel-app-110-fmej.vercel.app/api/transaction",
+    "https://vercel-app-120-vjh6.vercel.app/api/transaction",
 ]
 # کلید API از Config
 API_KEY = Config.WS_API_KEY
