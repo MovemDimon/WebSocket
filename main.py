@@ -19,9 +19,11 @@ app.add_middleware(
 
 # لیست سرورهای پرداخت و وضعیت سلامت آن‌ها
 PAYMENT_SERVERS = [
-    "https://payment-1.vercel.app/api/transaction",
-    # … تا ۱۰ سرور
-    "https://payment-10.vercel.app/api/transaction",
+    "vercel-app-10-njo6.vercel.app",
+    "vercel-app-50-5ymi.vercel.app",
+    "vercel-app-70-swvx.vercel.app",
+    "vercel-app-110-fmej.vercel.app",
+    "vercel-app-120-vjh6.vercel.app",
 ]
 healthy_servers = PAYMENT_SERVERS.copy()
 API_KEY = "<YOUR_WS_API_KEY>"
