@@ -1,15 +1,14 @@
 import os
 from dotenv import load_dotenv
 
-# بارگذاری مقادیر از .env
+# بارگذاری متغیرهای محیطی از .env
 load_dotenv()
 
 class Config:
-    # توکن ربات تلگرام
     TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
-    # API Key برای WebSocket
     WS_API_KEY: str = os.getenv("WS_API_KEY", "")
-    # آدرس والت فروشنده برای پرداخت
-    MERCHANT_WALLET_ADDRESS: str = os.getenv("MERCHANT_WALLET_ADDRESS", "")
-    # URL کامل WebSocket (بدون کوئری استرینگ)
+    # آدرس والت فروشنده برای شبکه‌های ETH (Ethereum, BSC, Polygon, Arbitrum, Optimism)
+    ETH_MERCHANT_WALLET: str = os.getenv("ETH_MERCHANT_WALLET", "")
+    # آدرس والت فروشنده مخصوص شبکه TON
+    TON_MERCHANT_WALLET: str = os.getenv("TON_MERCHANT_WALLET", "")
     WS_SERVER_URL: str = os.getenv("WS_SERVER_URL", "")
