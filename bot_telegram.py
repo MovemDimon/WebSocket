@@ -15,10 +15,8 @@ from telegram.ext import (
 )
 from app.core.app_core_config import Config
 
-# مراحل گفتگو
 CURRENCY, NETWORK, WALLET, TX_HASH = range(4)
 
-# Regex برای اعتبارسنجی ورودی‌ها
 WALLET_REGEX = re.compile(r"^(0x[a-fA-F0-9]{40}|EQ[a-zA-Z0-9_-]{48})$")
 TX_HASH_REGEX = re.compile(r"^[A-Fa-f0-9]{64}$")
 
@@ -55,9 +53,7 @@ async def start_payment(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 async def select_network(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data["currency"] = update.callback_query.data
     networks = ["Ethereum", "BSC", "Polygon", "Arbitrum", "Optimism", "TON"]
-    keyboard = [
-        [InlineKeyboardButton(net, callback_data=net) for net in networks]
-    ]
+    keyboard = [[InlineKeyboardButton(net, callback_data=net)] for net in networks]
     await update.callback_query.edit_message_text(
         f"Please select the network for {context.user_data['currency']}:",
         reply_markup=InlineKeyboardMarkup(keyboard),
@@ -76,8 +72,8 @@ async def ask_tx_hash(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     if not WALLET_REGEX.match(wallet):
         await update.message.reply_text("❌ Invalid wallet address format. Please try again.")
         return WALLET
-    context.user_data["wallet"] = wallet
 
+    context.user_data["wallet"] = wallet
     pkg = context.user_data.get("package", {})
     amount = pkg.get("usdPrice")
     currency = context.user_data["currency"]
@@ -95,8 +91,8 @@ async def receive_tx_hash(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if not TX_HASH_REGEX.match(tx_hash):
         await update.message.reply_text("❌ Invalid transaction hash. Please try again.")
         return TX_HASH
-    context.user_data["tx_hash"] = tx_hash
 
+    context.user_data["tx_hash"] = tx_hash
     pkg = context.user_data.get("package", {})
     data = {
         "user_id": pkg.get("userId"),
@@ -117,6 +113,7 @@ async def receive_tx_hash(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     return ConversationHandler.END
 
 app_builder = ApplicationBuilder().token(Config.TELEGRAM_BOT_TOKEN).build()
+
 conv_handler = ConversationHandler(
     entry_points=[CommandHandler("start", start_payment)],
     states={
@@ -127,6 +124,7 @@ conv_handler = ConversationHandler(
     },
     fallbacks=[]
 )
+
 app_builder.add_handler(conv_handler)
 
 if __name__ == "__main__":
