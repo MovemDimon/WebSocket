@@ -1,0 +1,22 @@
+# northflank.yml
+project:
+  name: telegram-fastapi
+
+services:
+  - name: websocket
+    type: web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    run:
+      command: uvicorn main:app --host 0.0.0.0 --port 8080
+    ports:
+      - port: 8080
+
+  - name: telegram-bot
+    type: worker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    run:
+      command: python bot_telegram.py
